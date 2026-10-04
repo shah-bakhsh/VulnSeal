@@ -295,8 +295,23 @@ class Repository:
 
     def create_patch(self, patch: Dict[str, Any]) -> Dict[str, Any]:
         with SessionLocal() as db:
+            patch_id = patch.get("id") or f"patch_{uuid.uuid4().hex[:10]}"
+            existing = db.query(PatchModel).filter(PatchModel.id == patch_id).first()
+            if existing:
+                existing.finding_id = patch["finding_id"]
+                existing.affected_file = patch.get("affected_file", "")
+                existing.diff = patch.get("diff", "")
+                existing.sha256_hash = patch.get("sha256_hash", "")
+                existing.explanation = patch.get("explanation", "")
+                existing.security_effect = patch.get("security_effect", "")
+                existing.risk_assessment = patch.get("risk_assessment", "")
+                existing.generated_regression_test = patch.get("generated_regression_test", "")
+                existing.verification_plan = patch.get("verification_plan", "")
+                db.commit()
+                return patch
+
             p = PatchModel(
-                id=patch.get("id") or f"patch_{uuid.uuid4().hex[:10]}",
+                id=patch_id,
                 finding_id=patch["finding_id"],
                 affected_file=patch.get("affected_file", ""),
                 diff=patch.get("diff", ""),
@@ -345,8 +360,13 @@ class Repository:
 
     def create_proof(self, proof: Dict[str, Any]) -> Dict[str, Any]:
         with SessionLocal() as db:
+            proof_id = proof.get("id") or f"proof_{uuid.uuid4().hex[:10]}"
+            existing = db.query(ProofModel).filter(ProofModel.id == proof_id).first()
+            if existing:
+                return proof
+
             p = ProofModel(
-                id=proof.get("id") or f"proof_{uuid.uuid4().hex[:10]}",
+                id=proof_id,
                 workspace_id=proof.get("workspace_id", "ws_default_01"),
                 finding_id=proof["finding_id"],
                 target_url=proof.get("target_url", ""),
