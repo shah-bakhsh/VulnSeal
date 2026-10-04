@@ -1,21 +1,19 @@
 services:
   - type: web
-    name: vulnseal
-    env: node
+    name: vulnseal-backend
+    env: python
     plan: free
-    buildCommand: npm ci && npm run build
-    startCommand: npx tsx server.ts
-    healthCheckPath: /api/workspaces
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
     envVars:
-      - key: NODE_VERSION
-        value: 20.10.0
-      - key: PORT
-        value: 3000
-      - key: GROQ_API_KEY
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: APP_ENV
+        value: production
+      - key: FRONTEND_URL
         sync: false
       - key: GEMINI_API_KEY
         sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_ANON_KEY
+      - key: GROQ_API_KEY
         sync: false

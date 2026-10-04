@@ -37,10 +37,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware (Configured origins)
+# CORS Middleware (Configured origins and Vercel domains)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS if settings.APP_ENV == "development" else [settings.FRONTEND_URL],
+    allow_origins=settings.CORS_ORIGINS if settings.APP_ENV == "development" else [settings.FRONTEND_URL, "https://*.vercel.app"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,6 +58,18 @@ app.include_router(activity_router)
 app.include_router(audit_router)
 app.include_router(engine_router)
 app.include_router(demo_router)
+
+@app.get("/")
+def root_endpoint():
+    return {
+        "status": "online",
+        "service": "VulnSeal Autonomous Security Remediation Platform",
+        "version": settings.APP_VERSION,
+        "tagline": "Find. Fix. Prove.",
+        "documentation": "/docs",
+        "health": "/api/health",
+        "demo_sandbox": "/demo-target"
+    }
 
 def run_server(port: int = 8000):
     import uvicorn

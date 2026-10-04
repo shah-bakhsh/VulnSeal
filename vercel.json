@@ -5,16 +5,16 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "source": "/api/:match*",
+      "destination": "https://vulnseal.onrender.com/api/:match*"
     },
     {
-      "source": "/demo-target/(.*)",
-      "destination": "/api/index.js"
+      "source": "/demo-target/:match*",
+      "destination": "https://vulnseal.onrender.com/demo-target/:match*"
     },
     {
       "source": "/demo-target",
-      "destination": "/api/index.js"
+      "destination": "https://vulnseal.onrender.com/demo-target"
     },
     {
       "source": "/(.*)",
