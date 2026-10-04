@@ -1,0 +1,7 @@
+{
+  "name": "VulnSeal — Verified Autonomous Security Repair",
+  "description": "Find. Fix. Prove. Close the cybersecurity remediation loop with deterministic scanning, evidence verification, isolated ShadowFix testing, and cryptographic Proof of Fix.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

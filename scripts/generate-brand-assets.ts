@@ -1,0 +1,243 @@
+import fs from 'fs';
+import path from 'path';
+import { renderAsync } from '@resvg/resvg-js';
+
+const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" fill="none">
+  <defs>
+    <!-- Linear Gradients for Shield Outer Frame -->
+    <linearGradient id="shield-top-crest-l" x1="500" y1="20" x2="80" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="35%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0369A1" />
+    </linearGradient>
+
+    <linearGradient id="shield-top-crest-r" x1="500" y1="20" x2="920" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7DD3FC" />
+      <stop offset="40%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+
+    <linearGradient id="shield-rim-left" x1="80" y1="230" x2="500" y2="980" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="40%" stop-color="#1D4ED8" />
+      <stop offset="80%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+
+    <linearGradient id="shield-rim-right" x1="920" y1="230" x2="500" y2="980" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00BAF2" />
+      <stop offset="40%" stop-color="#0284C7" />
+      <stop offset="80%" stop-color="#1D4ED8" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+
+    <!-- Lower Wrapping Wings (Glossy Curled Ribbon) -->
+    <linearGradient id="wing-lower-left" x1="80" y1="420" x2="500" y2="980" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.9" />
+      <stop offset="35%" stop-color="#00D8FF" />
+      <stop offset="70%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <linearGradient id="wing-lower-right" x1="920" y1="420" x2="500" y2="980" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#BAE6FD" />
+      <stop offset="25%" stop-color="#38BDF8" />
+      <stop offset="65%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#1E40AF" />
+    </linearGradient>
+
+    <!-- Center V Emblem Gradients -->
+    <!-- Left Arm Outer Facet (Deep Shadow) -->
+    <linearGradient id="v-left-outer" x1="190" y1="300" x2="450" y2="650" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="30%" stop-color="#1D4ED8" />
+      <stop offset="70%" stop-color="#1E40AF" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+
+    <!-- Left Arm Top Facet -->
+    <linearGradient id="v-left-top" x1="190" y1="300" x2="390" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7DD3FC" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+
+    <!-- Left Arm Main Prism Facet (Vibrant Cyan-Blue) -->
+    <linearGradient id="v-left-prism" x1="280" y1="350" x2="500" y2="825" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="30%" stop-color="#38BDF8" />
+      <stop offset="70%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Right Arm Top Facet -->
+    <linearGradient id="v-right-top" x1="610" y1="310" x2="810" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E0F2FE" />
+      <stop offset="50%" stop-color="#BAE6FD" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+
+    <!-- Right Arm Outer Prism Facet (Deep Crystal) -->
+    <linearGradient id="v-right-outer" x1="660" y1="380" x2="810" y2="550" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="50%" stop-color="#1D4ED8" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+
+    <!-- Right Arm Main Glossy Face (High Specular Glass Cyan) -->
+    <linearGradient id="v-right-main" x1="500" y1="530" x2="780" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="25%" stop-color="#0EA5E9" />
+      <stop offset="60%" stop-color="#38BDF8" />
+      <stop offset="90%" stop-color="#BAE6FD" />
+      <stop offset="100%" stop-color="#F0F9FF" />
+    </linearGradient>
+
+    <!-- Diagonal Glass Glare Reflection -->
+    <linearGradient id="v-glass-reflection" x1="550" y1="400" x2="720" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85" />
+      <stop offset="35%" stop-color="#E0F2FE" stop-opacity="0.4" />
+      <stop offset="70%" stop-color="#38BDF8" stop-opacity="0.0" />
+    </linearGradient>
+  </defs>
+
+  <!-- ============================================== -->
+  <!-- 1. OUTER SHIELD BASE & 3D STRUCTURE             -->
+  <!-- ============================================== -->
+
+  <!-- Top-Left Shield Crest Bevel -->
+  <path d="M 500,24 L 78,226 L 176,292 L 500,168 Z" fill="url(#shield-top-crest-l)" />
+
+  <!-- Top-Right Shield Crest Bevel -->
+  <path d="M 500,24 L 922,226 L 824,292 L 500,168 Z" fill="url(#shield-top-crest-r)" />
+
+  <!-- Crest Peak Highlight Line -->
+  <path d="M 500,24 L 500,168" stroke="#E0F2FE" stroke-width="3" stroke-linecap="round" opacity="0.9" />
+
+  <!-- Outer Upper Left Rim -->
+  <path d="M 78,226 L 78,396 L 176,330 L 176,292 Z" fill="#0284C7" />
+
+  <!-- Outer Upper Right Rim -->
+  <path d="M 922,226 L 922,396 L 824,330 L 824,292 Z" fill="#38BDF8" />
+
+  <!-- Left Inner Wall of Shield Opening -->
+  <path d="M 176,292 L 176,460 C 176,600 290,730 498,832 L 498,825 C 310,720 186,580 186,292 Z" fill="#0C254A" opacity="0.6" />
+
+  <!-- Right Inner Wall of Shield Opening -->
+  <path d="M 824,292 L 824,460 C 824,600 710,730 502,832 L 502,825 C 690,720 814,580 814,292 Z" fill="#0A3668" opacity="0.6" />
+
+  <!-- Lower Left Shield Frame Under-Layer -->
+  <path d="M 78,396 C 78,630 250,830 500,976 L 498,832 C 320,720 176,550 176,292 L 78,396 Z" fill="url(#shield-rim-left)" />
+
+  <!-- Lower Right Shield Frame Under-Layer -->
+  <path d="M 922,396 C 922,630 750,830 500,976 L 502,832 C 680,720 824,550 824,292 L 922,396 Z" fill="url(#shield-rim-right)" />
+
+  <!-- ============================================== -->
+  <!-- 2. LOWER GLOSSY SWEEPING WINGS (OVERLAYS)       -->
+  <!-- ============================================== -->
+
+  <!-- Sweeping Lower-Left Overlapping Wing -->
+  <path d="M 500,976 C 300,860 140,700 80,430 C 110,560 210,680 340,760 C 400,800 450,860 500,976 Z" fill="url(#wing-lower-left)" />
+
+  <!-- Sweeping Lower-Right Overlapping Wing -->
+  <path d="M 500,976 C 700,860 860,700 920,430 C 890,560 790,680 660,760 C 600,800 550,860 500,976 Z" fill="url(#wing-lower-right)" />
+
+  <!-- Lower Wing Gloss Curves / Specular Trim -->
+  <path d="M 920,430 C 885,570 780,690 650,770 C 585,815 540,880 500,976" stroke="#BAE6FD" stroke-width="4" stroke-linecap="round" opacity="0.8" />
+  <path d="M 80,430 C 115,570 220,690 350,770 C 415,815 460,880 500,976" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+
+  <!-- Bottom Tip Spine -->
+  <path d="M 500,830 L 500,976" stroke="#E0F2FE" stroke-width="3.5" stroke-linecap="round" opacity="0.9" />
+
+  <!-- ============================================== -->
+  <!-- 3. THE ICONIC CRYSTALLINE "V" EMBLEM           -->
+  <!-- ============================================== -->
+
+  <!-- [LEFT ARM] -->
+  <!-- Top Horizontal Facet -->
+  <polygon points="190,302 390,310 326,380 190,302" fill="url(#v-left-top)" />
+
+  <!-- Left Arm Outer Deep Facet (Dark Cobalt) -->
+  <polygon points="190,302 326,380 435,580 498,680 498,825 385,735 220,520" fill="url(#v-left-outer)" />
+
+  <!-- Left Arm Inner Luminous Prism (Cyan Glow) -->
+  <polygon points="390,310 500,530 498,680 435,580 326,380" fill="url(#v-left-prism)" />
+
+  <!-- [RIGHT ARM] -->
+  <!-- Top Horizontal Facet (Crisp Specular Edge) -->
+  <polygon points="610,310 810,302 810,305 674,380 610,310" fill="url(#v-right-top)" />
+
+  <!-- Right Arm Outer Deep Crystal Facet -->
+  <polygon points="810,302 674,380 565,580 502,680 502,825 615,735 780,520" fill="url(#v-right-outer)" />
+
+  <!-- Right Arm Inner Main Glossy Face (Brilliant Glass Cyan) -->
+  <polygon points="610,310 500,530 502,680 565,580 674,380" fill="url(#v-right-main)" />
+
+  <!-- Center V Keel & Sharp Vertical Ridge -->
+  <polygon points="500,530 500,825 502,825 502,680" fill="#E0F2FE" opacity="0.9" />
+  <line x1="500" y1="530" x2="500" y2="825" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.95" />
+
+  <!-- Right Arm Specular Diagonal Glass Glare (Faceted Sheen) -->
+  <polygon points="610,310 655,340 540,620 500,530" fill="url(#v-glass-reflection)" opacity="0.8" />
+  <polygon points="674,380 730,420 620,630 565,580" fill="#FFFFFF" opacity="0.25" />
+
+  <!-- Top-left outer apex specular glint -->
+  <circle cx="190" cy="302" r="3" fill="#FFFFFF" opacity="0.9" />
+  <!-- Top-right outer apex specular glint -->
+  <circle cx="810" cy="302" r="3.5" fill="#FFFFFF" opacity="0.9" />
+  <!-- Center top apex glint -->
+  <circle cx="500" cy="24" r="3.5" fill="#FFFFFF" opacity="0.95" />
+  <!-- Bottom tip glint -->
+  <circle cx="500" cy="825" r="3" fill="#E0F2FE" opacity="0.95" />
+</svg>
+`;
+
+async function main() {
+  const publicDir = path.join(process.cwd(), 'public');
+  const brandDir = path.join(publicDir, 'brand');
+  const assetsBrandDir = path.join(publicDir, 'assets', 'brand');
+
+  fs.mkdirSync(brandDir, { recursive: true });
+  fs.mkdirSync(assetsBrandDir, { recursive: true });
+
+  const masterSvgPath = path.join(brandDir, 'vulnseal-logo.svg');
+  const symbolSvgPath = path.join(brandDir, 'vulnseal-symbol.svg');
+  const faviconSvgPath = path.join(publicDir, 'favicon.svg');
+
+  fs.writeFileSync(masterSvgPath, svgContent, 'utf8');
+  fs.writeFileSync(symbolSvgPath, svgContent, 'utf8');
+  fs.writeFileSync(faviconSvgPath, svgContent, 'utf8');
+  fs.copyFileSync(masterSvgPath, path.join(assetsBrandDir, 'vulnseal-logo.svg'));
+
+  console.log('Saved SVG brand assets.');
+
+  const sizes = [
+    { width: 512, height: 512, out: path.join(brandDir, 'vulnseal-logo.png') },
+    { width: 256, height: 256, out: path.join(brandDir, 'vulnseal-symbol.png') },
+    { width: 64, height: 64, out: path.join(brandDir, 'vulnseal-favicon.png') },
+    { width: 32, height: 32, out: path.join(publicDir, 'favicon-32x32.png') },
+    { width: 16, height: 16, out: path.join(publicDir, 'favicon-16x16.png') },
+    { width: 192, height: 192, out: path.join(publicDir, 'icon-192.png') },
+    { width: 512, height: 512, out: path.join(publicDir, 'icon-512.png') },
+  ];
+
+  for (const item of sizes) {
+    const pngData = await renderAsync(svgContent, {
+      fitTo: { mode: 'width', value: item.width },
+    });
+    fs.writeFileSync(item.out, pngData.asPng());
+    console.log(`Generated: ${item.out} (${item.width}x${item.height})`);
+  }
+
+  // Also copy to assets/brand/
+  fs.copyFileSync(path.join(brandDir, 'vulnseal-logo.png'), path.join(assetsBrandDir, 'vulnseal-logo.png'));
+  fs.copyFileSync(path.join(brandDir, 'vulnseal-symbol.png'), path.join(assetsBrandDir, 'vulnseal-symbol.png'));
+  fs.copyFileSync(path.join(brandDir, 'vulnseal-favicon.png'), path.join(assetsBrandDir, 'vulnseal-favicon.png'));
+
+  // Copy 32x32 to favicon.ico
+  fs.copyFileSync(path.join(publicDir, 'favicon-32x32.png'), path.join(publicDir, 'favicon.ico'));
+
+  console.log('All brand raster and vector assets generated successfully!');
+}
+
+main().catch(console.error);
